@@ -88,6 +88,8 @@ public class LoginServlet extends HttpServlet {
 
         if (userOpt.isEmpty() || !PasswordUtil.checkPassword(password, userOpt.get().getPasswordHash())) {
             logger.warn("Failed login attempt for email: {}", email);
+            com.fitness.util.AsyncAuditLogger.getInstance().log(null, "LOGIN_FAILURE", "User", null,
+                    "Failed login attempt for email: " + email, req.getRemoteAddr());
             req.setAttribute("errorMessage", "Invalid email address or password.");
             req.setAttribute("formEmail", email);
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
@@ -98,6 +100,8 @@ public class LoginServlet extends HttpServlet {
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             logger.warn("Inactive user attempted login: id={}, email={}", user.getId(), user.getEmail());
+            com.fitness.util.AsyncAuditLogger.getInstance().log(user.getId(), "LOGIN_FAILURE", "User", user.getId(),
+                    "Inactive account attempted login: " + user.getEmail(), req.getRemoteAddr());
             req.setAttribute("errorMessage", "Your account has been deactivated. Please contact an administrator.");
             req.getRequestDispatcher("/WEB-INF/views/auth/login.jsp").forward(req, resp);
             return;
@@ -110,6 +114,8 @@ public class LoginServlet extends HttpServlet {
         CsrfUtil.generateToken(newSession);
 
         logger.info("User logged in successfully: id={}, email={}, role={}", user.getId(), user.getEmail(), user.getRole());
+        com.fitness.util.AsyncAuditLogger.getInstance().log(user.getId(), "LOGIN_SUCCESS", "User", user.getId(),
+                "User authenticated successfully as " + user.getRole(), req.getRemoteAddr());
 
         if (user.isAdmin()) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard");

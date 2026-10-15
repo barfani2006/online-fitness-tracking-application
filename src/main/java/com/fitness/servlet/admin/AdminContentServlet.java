@@ -155,6 +155,9 @@ public class AdminContentServlet extends HttpServlet {
             int id = Integer.parseInt(req.getParameter("id"));
             contentDAO.updateStatus(id, ContentStatus.APPROVED, null);
             logger.info("Admin approved fitness content id={}", id);
+            User admin = (User) req.getSession().getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "CONTENT_APPROVED", "FitnessContent", id, "Admin approved fitness article", req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "Content approved and published to user community.");
         } catch (Exception e) {
             logger.error("Error approving content", e);
@@ -172,6 +175,9 @@ public class AdminContentServlet extends HttpServlet {
             }
             contentDAO.updateStatus(id, ContentStatus.REJECTED, reason.trim());
             logger.info("Admin rejected fitness content id={}", id);
+            User admin = (User) req.getSession().getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "CONTENT_REJECTED", "FitnessContent", id, "Admin rejected content. Reason: " + reason, req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "Content rejected.");
         } catch (Exception e) {
             logger.error("Error rejecting content", e);
@@ -200,6 +206,8 @@ public class AdminContentServlet extends HttpServlet {
 
             contentDAO.save(fc);
             logger.info("Admin created and published guide: id={}", fc.getId());
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "CONTENT_CREATED", "FitnessContent", fc.getId(), "Admin published article: " + fc.getTitle(), req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "Article published successfully.");
 
         } catch (Exception e) {
@@ -220,6 +228,9 @@ public class AdminContentServlet extends HttpServlet {
                 fc.setCategory(ContentCategory.fromString(req.getParameter("category")));
                 contentDAO.update(fc);
                 logger.info("Admin updated content id={}", id);
+                User admin = (User) req.getSession().getAttribute("currentUser");
+                com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                        "CONTENT_UPDATED", "FitnessContent", id, "Admin updated article: " + fc.getTitle(), req.getRemoteAddr());
                 req.getSession().setAttribute("flashSuccess", "Article updated successfully.");
             }
         } catch (Exception e) {
@@ -234,6 +245,9 @@ public class AdminContentServlet extends HttpServlet {
             int id = Integer.parseInt(req.getParameter("id"));
             contentDAO.deleteById(id);
             logger.info("Admin deleted content id={}", id);
+            User admin = (User) req.getSession().getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "CONTENT_DELETED", "FitnessContent", id, "Admin deleted fitness content ID: " + id, req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "Content removed successfully.");
         } catch (Exception e) {
             logger.error("Error deleting content", e);

@@ -3,6 +3,7 @@ package com.fitness.servlet.admin;
 import com.fitness.dao.SettingDAO;
 import com.fitness.dao.impl.SettingDAOImpl;
 import com.fitness.model.AppSetting;
+import com.fitness.model.User;
 import com.fitness.util.CsrfUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -77,6 +78,9 @@ public class AdminSettingsServlet extends HttpServlet {
                 }
             }
             logger.info("Admin updated application configuration settings");
+            User admin = (User) session.getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "SETTINGS_UPDATED", "AppSetting", null, "Admin updated system configuration settings", req.getRemoteAddr());
             session.setAttribute("flashSuccess", "System configuration settings updated successfully.");
 
         } catch (Exception e) {

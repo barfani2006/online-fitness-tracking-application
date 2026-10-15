@@ -104,6 +104,8 @@ public class RegisterServlet extends HttpServlet {
 
             userDAO.save(user);
             logger.info("New user registered successfully: id={}, email={}", user.getId(), user.getEmail());
+            com.fitness.util.AsyncAuditLogger.getInstance().log(user.getId(), "USER_REGISTER", "User", user.getId(),
+                    "User registered self-service account: " + user.getEmail(), req.getRemoteAddr());
 
             session.setAttribute("flashSuccess", "Registration successful! You can now log in with your credentials.");
             resp.sendRedirect(req.getContextPath() + "/login");

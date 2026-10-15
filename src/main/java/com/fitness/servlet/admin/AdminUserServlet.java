@@ -205,6 +205,10 @@ public class AdminUserServlet extends HttpServlet {
 
             userDAO.save(user);
             logger.info("Admin created new user account: id={}, email={}", user.getId(), user.getEmail());
+            User admin = (User) req.getSession().getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "USER_CREATED", "User", user.getId(),
+                    "Admin created user " + user.getEmail() + " (" + user.getRole() + ")", req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "User account created successfully.");
 
         } catch (ValidationException ve) {
@@ -239,6 +243,10 @@ public class AdminUserServlet extends HttpServlet {
 
             userDAO.update(user);
             logger.info("Admin updated user details: id={}", user.getId());
+            User admin = (User) req.getSession().getAttribute("currentUser");
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "USER_UPDATED", "User", user.getId(),
+                    "Admin updated user " + user.getEmail() + " (Role: " + user.getRole() + ", Status: " + user.getStatus() + ")", req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "User updated successfully.");
 
         } catch (Exception e) {
@@ -257,6 +265,10 @@ public class AdminUserServlet extends HttpServlet {
                 UserStatus newStatus = (user.getStatus() == UserStatus.ACTIVE) ? UserStatus.INACTIVE : UserStatus.ACTIVE;
                 userDAO.updateStatus(userId, newStatus);
                 logger.info("Admin toggled user status: id={}, newStatus={}", userId, newStatus);
+                User admin = (User) req.getSession().getAttribute("currentUser");
+                com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                        "USER_STATUS_CHANGED", "User", userId,
+                        "Admin changed user status for " + user.getEmail() + " to " + newStatus, req.getRemoteAddr());
                 req.getSession().setAttribute("flashSuccess", "User status changed to " + newStatus);
             }
         } catch (Exception e) {
@@ -278,6 +290,9 @@ public class AdminUserServlet extends HttpServlet {
 
             userDAO.deleteById(userId);
             logger.info("Admin deleted user: id={}", userId);
+            com.fitness.util.AsyncAuditLogger.getInstance().log(admin != null ? admin.getId() : null,
+                    "USER_DELETED", "User", userId,
+                    "Admin deleted user account ID: " + userId, req.getRemoteAddr());
             req.getSession().setAttribute("flashSuccess", "User account deleted permanently.");
 
         } catch (Exception e) {
