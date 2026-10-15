@@ -1,0 +1,14 @@
+target/
+*.war
+*.ear
+*.class
+.settings/
+.project
+.classpath
+*.iml
+.idea/
+*.log
+.env
+db.local.properties
+.DS_Store
+Thumbs.db
