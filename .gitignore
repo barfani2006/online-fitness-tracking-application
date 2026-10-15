@@ -14,3 +14,29 @@ db.local.properties
 Thumbs.db
 cookies.txt
 scratch/
+# OS / IDE artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build / dependency directories
+target/
+build/
+out/
+node_modules/
+*.class
+*.jar
+
+# Secrets / credentials
+.env
+*.env
+*.pem
+*.key
+cookies.txt
+
+# Logs / temp files
+*.log
+*.tmp
+*.cache
+*.swp
