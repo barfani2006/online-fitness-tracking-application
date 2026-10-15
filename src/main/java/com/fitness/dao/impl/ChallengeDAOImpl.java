@@ -327,11 +327,13 @@ public class ChallengeDAOImpl implements ChallengeDAO {
 
     @Override
     public int countActiveChallenges() {
-        String sql = "SELECT COUNT(*) FROM fitness_challenges WHERE CURDATE() BETWEEN start_date AND end_date";
+        String sql = "SELECT COUNT(*) FROM fitness_challenges WHERE ? BETWEEN start_date AND end_date";
         try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) return rs.getInt(1);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(LocalDate.now()));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
         } catch (SQLException e) {
             logger.error("Error counting active challenges", e);
         }

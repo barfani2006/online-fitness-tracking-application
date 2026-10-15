@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<jsp:include page="../common/header.jsp"/>
-<jsp:include page="../common/sidebar.jsp"/>
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<jsp:include page="/WEB-INF/views/common/sidebar.jsp"/>
 
 <c:if test="${not empty errorMessage}">
     <div class="alert alert-danger">${errorMessage}</div>
@@ -82,4 +82,4 @@
     </form>
 </div>
 
-<jsp:include page="../common/footer.jsp"/>
+<jsp:include page="/WEB-INF/views/common/footer.jsp"/>

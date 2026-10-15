@@ -313,13 +313,17 @@ public class WorkoutDAOImpl implements WorkoutDAO {
                 "COALESCE(SUM(duration_minutes), 0) AS total_minutes, " +
                 "COALESCE(SUM(calories_burned), 0) AS total_calories, " +
                 "COALESCE(AVG(duration_minutes), 0) AS avg_duration, " +
-                "COUNT(CASE WHEN workout_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) AS this_week_count, " +
-                "COALESCE(SUM(CASE WHEN workout_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN duration_minutes ELSE 0 END), 0) AS this_week_minutes, " +
-                "COALESCE(SUM(CASE WHEN workout_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN calories_burned ELSE 0 END), 0) AS this_week_calories " +
+                "COUNT(CASE WHEN workout_date >= ? THEN 1 END) AS this_week_count, " +
+                "COALESCE(SUM(CASE WHEN workout_date >= ? THEN duration_minutes ELSE 0 END), 0) AS this_week_minutes, " +
+                "COALESCE(SUM(CASE WHEN workout_date >= ? THEN calories_burned ELSE 0 END), 0) AS this_week_calories " +
                 "FROM workouts WHERE user_id = ?";
         try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
+            Date weekAgo = Date.valueOf(LocalDate.now().minusDays(7));
+            stmt.setDate(1, weekAgo);
+            stmt.setDate(2, weekAgo);
+            stmt.setDate(3, weekAgo);
+            stmt.setInt(4, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     stats.put("totalCount", rs.getInt("total_count"));
@@ -342,12 +346,13 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     public List<Map<String, Object>> getWeeklyWorkoutTrends(int userId, int weeks) {
         List<Map<String, Object>> trends = new ArrayList<>();
         String sql = "SELECT workout_date, SUM(duration_minutes) AS total_minutes, SUM(calories_burned) AS total_calories, COUNT(*) as workout_count " +
-                "FROM workouts WHERE user_id = ? AND workout_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) " +
+                "FROM workouts WHERE user_id = ? AND workout_date >= ? " +
                 "GROUP BY workout_date ORDER BY workout_date ASC";
         try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            Date startDate = Date.valueOf(LocalDate.now().minusDays(weeks * 7L));
             stmt.setInt(1, userId);
-            stmt.setInt(2, weeks * 7);
+            stmt.setDate(2, startDate);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> day = new HashMap<>();

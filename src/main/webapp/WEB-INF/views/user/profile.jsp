@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<jsp:include page="../common/header.jsp"/>
-<jsp:include page="../common/sidebar.jsp"/>
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<jsp:include page="/WEB-INF/views/common/sidebar.jsp"/>
 
 <c:if test="${not empty successMessage}">
     <div class="alert alert-success">${successMessage}</div>
@@ -151,4 +151,4 @@
 
 </div>
 
-<jsp:include page="../common/footer.jsp"/>
+<jsp:include page="/WEB-INF/views/common/footer.jsp"/>

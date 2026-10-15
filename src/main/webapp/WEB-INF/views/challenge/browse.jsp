@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<jsp:include page="../common/header.jsp"/>
-<jsp:include page="../common/sidebar.jsp"/>
+<jsp:include page="/WEB-INF/views/common/header.jsp"/>
+<jsp:include page="/WEB-INF/views/common/sidebar.jsp"/>
 
 <c:if test="${not empty successMessage}">
     <div class="alert alert-success">${successMessage}</div>
@@ -101,4 +101,4 @@
     </c:otherwise>
 </c:choose>
 
-<jsp:include page="../common/footer.jsp"/>
+<jsp:include page="/WEB-INF/views/common/footer.jsp"/>

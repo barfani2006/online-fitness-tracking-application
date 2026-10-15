@@ -13,7 +13,14 @@
         <span class="brand-badge" style="background: var(--danger); font-size: 14px;">Server Error</span>
         <h1 style="margin: 16px 0 8px 0; font-size: 26px;">500 Internal Error</h1>
         <p style="color: var(--text-secondary); margin-bottom: 24px;">
-            An unexpected error occurred while processing your request. The technical details have been logged for administrative review.
+            <c:choose>
+                <c:when test="${not empty errorMessage}">
+                    ${errorMessage}
+                </c:when>
+                <c:otherwise>
+                    An unexpected error occurred while processing your request. The technical details have been logged for administrative review.
+                </c:otherwise>
+            </c:choose>
         </p>
         <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-primary">Return to Dashboard</a>
     </div>
