@@ -15,7 +15,7 @@ import java.util.Properties;
  * High-performance JDBC Connection Manager utilizing HikariCP connection pool.
  * Loads settings from environment variables with fallback to db.properties.
  */
-public class DBConnectionManager {
+public class DBConnectionManager implements ConnectionProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DBConnectionManager.class);
     private static volatile DBConnectionManager instance;

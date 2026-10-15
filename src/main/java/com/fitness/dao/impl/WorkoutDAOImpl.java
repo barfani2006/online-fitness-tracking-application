@@ -30,21 +30,21 @@ import java.util.Optional;
 public class WorkoutDAOImpl implements WorkoutDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkoutDAOImpl.class);
-    private final DBConnectionManager dbManager;
+    private final com.fitness.util.ConnectionProvider connectionProvider;
 
     public WorkoutDAOImpl() {
         this(DBConnectionManager.getInstance());
     }
 
-    public WorkoutDAOImpl(DBConnectionManager dbManager) {
-        this.dbManager = dbManager;
+    public WorkoutDAOImpl(com.fitness.util.ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
     }
 
     @Override
     public Optional<Workout> findById(Integer id) {
         String sql = "SELECT w.*, c.name AS category_name FROM workouts w " +
                 "LEFT JOIN workout_categories c ON w.category_id = c.id WHERE w.id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -64,7 +64,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         List<Workout> list = new ArrayList<>();
         String sql = "SELECT w.*, c.name AS category_name FROM workouts w " +
                 "LEFT JOIN workout_categories c ON w.category_id = c.id ORDER BY w.workout_date DESC, w.id DESC";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -83,7 +83,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         String sql = "SELECT w.*, c.name AS category_name FROM workouts w " +
                 "LEFT JOIN workout_categories c ON w.category_id = c.id WHERE w.user_id = ? " +
                 "ORDER BY w.workout_date DESC, w.id DESC";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -104,7 +104,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         String sql = "SELECT w.*, c.name AS category_name FROM workouts w " +
                 "LEFT JOIN workout_categories c ON w.category_id = c.id WHERE w.user_id = ? " +
                 "ORDER BY w.workout_date DESC, w.id DESC LIMIT ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             stmt.setInt(2, limit);
@@ -124,7 +124,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     public Workout save(Workout w) {
         String sql = "INSERT INTO workouts (user_id, category_id, activity_name, workout_date, duration_minutes, intensity, calories_burned, notes) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, w.getUserId());
             if (w.getCategoryId() != null) stmt.setInt(2, w.getCategoryId());
@@ -157,7 +157,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     public boolean update(Workout w) {
         String sql = "UPDATE workouts SET category_id = ?, activity_name = ?, workout_date = ?, duration_minutes = ?, " +
                 "intensity = ?, calories_burned = ?, notes = ? WHERE id = ? AND user_id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             if (w.getCategoryId() != null) stmt.setInt(1, w.getCategoryId());
             else stmt.setNull(1, Types.INTEGER);
@@ -181,7 +181,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     @Override
     public boolean deleteById(Integer id) {
         String sql = "DELETE FROM workouts WHERE id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
@@ -193,7 +193,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
 
     public boolean deleteByIdAndUserId(int workoutId, int userId) {
         String sql = "DELETE FROM workouts WHERE id = ? AND user_id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, workoutId);
             stmt.setInt(2, userId);
@@ -246,7 +246,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         params.add(limit);
         params.add(offset);
 
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
@@ -288,7 +288,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
             params.add(Date.valueOf(endDate));
         }
 
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
@@ -317,7 +317,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
                 "COALESCE(SUM(CASE WHEN workout_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN duration_minutes ELSE 0 END), 0) AS this_week_minutes, " +
                 "COALESCE(SUM(CASE WHEN workout_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN calories_burned ELSE 0 END), 0) AS this_week_calories " +
                 "FROM workouts WHERE user_id = ?";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -344,7 +344,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         String sql = "SELECT workout_date, SUM(duration_minutes) AS total_minutes, SUM(calories_burned) AS total_calories, COUNT(*) as workout_count " +
                 "FROM workouts WHERE user_id = ? AND workout_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) " +
                 "GROUP BY workout_date ORDER BY workout_date ASC";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             stmt.setInt(2, weeks * 7);
@@ -370,7 +370,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         List<Map<String, Object>> breakdown = new ArrayList<>();
         String sql = "SELECT intensity, COUNT(*) AS count, SUM(calories_burned) AS calories FROM workouts " +
                 "WHERE user_id = ? GROUP BY intensity";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -395,7 +395,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
         String sql = "SELECT COALESCE(c.name, 'Other') AS category_name, COUNT(w.id) AS count, SUM(w.duration_minutes) as minutes " +
                 "FROM workouts w LEFT JOIN workout_categories c ON w.category_id = c.id " +
                 "WHERE w.user_id = ? GROUP BY c.name ORDER BY count DESC";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -418,7 +418,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     public List<WorkoutCategory> findAllCategories() {
         List<WorkoutCategory> list = new ArrayList<>();
         String sql = "SELECT * FROM workout_categories ORDER BY name ASC";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -441,7 +441,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     @Override
     public int countTotalWorkoutsAllUsers() {
         String sql = "SELECT COUNT(*) FROM workouts";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
@@ -454,7 +454,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     @Override
     public long sumTotalCaloriesAllUsers() {
         String sql = "SELECT COALESCE(SUM(calories_burned), 0) FROM workouts";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getLong(1);
@@ -467,7 +467,7 @@ public class WorkoutDAOImpl implements WorkoutDAO {
     @Override
     public long sumTotalMinutesAllUsers() {
         String sql = "SELECT COALESCE(SUM(duration_minutes), 0) FROM workouts";
-        try (Connection conn = dbManager.getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             if (rs.next()) return rs.getLong(1);
